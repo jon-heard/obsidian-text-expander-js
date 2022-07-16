@@ -218,7 +218,7 @@ abstract class ShortcutLoader
 				if (newShortcut.test.source === "^tejs setup$")
 				{
 					// If setup script returns TRUE, don't use shortcuts
-					if (ShortcutExpander.runExpansionScript(newShortcut.expansion))
+					if (await ShortcutExpander.runExpansionScript(newShortcut.expansion))
 					{
 						parseResult.shortcuts = undefined;
 					}

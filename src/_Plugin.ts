@@ -25,6 +25,8 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 	public shortcutDfc: Dfc;
 	// The master list of shortcuts: all registered shortcuts.  Referenced during expansion.
 	public shortcuts: Array<any>;
+	// If set, all keyboard input is ignored
+	public inputDisabled: boolean;
 
 	public onload(): void
 	{
@@ -72,6 +74,7 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 		ShortcutExpander.initialize(this);
 		UserNotifier.initialize(this);
 		ExternalRunner.initialize(this);
+		InputBlocker.initialize(this);
 		this.shortcutDfc = new Dfc(
 			this, this.getActiveShortcutFileAddresses(),
 			ShortcutLoader.getFunction_setupShortcuts(), this.onShortcutFileDisabled.bind(this),
@@ -137,6 +140,12 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 	// CM5 callback for "keydown".  Used to kick off shortcut expansion attempt.
 	private cm5_handleExpansionTrigger(cm: any, keydown: KeyboardEvent): void
 	{
+		// Handle blocking key inputs when input is disabled
+		if (this.inputDisabled)
+		{
+			event.preventDefault();
+		}
+
 		if ((event as any)?.key === this.suffixEndCharacter)
 		{
 			this.tryShortcutExpansion();
@@ -146,6 +155,12 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 	// CM6 callback for editor events.  Used to kick off shortcut expansion attempt.
 	private cm6_handleExpansionTrigger(tr: any): any
 	{
+		// Handle blocking key inputs when input is disabled
+		if (this.inputDisabled)
+		{
+			return null;
+		}
+
 		// Only bother with key inputs that have changed the document
 		if (!tr.isUserEvent("input.type") || !tr.docChanged) { return tr; }
 
@@ -173,7 +188,7 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 	// Tries to get shortcut beneath caret and expand it.  setTimeout pauses for a frame to
 	// give the calling event the opportunity to finish processing.  This is especially
 	// important for CM5, as the typed key isn't in the editor until the calling event finishes.
-	private tryShortcutExpansion(): void { setTimeout(() =>
+	private tryShortcutExpansion(): void { setTimeout(async () =>
 	{
 		const editor: any  = this.app.workspace.getActiveViewOfType(obsidian.MarkdownView)?.editor;
 		if (!editor) { return; }
@@ -195,7 +210,7 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 		// Run the Expansion script on the shortcut under the caret
 		const sourceText: string =
 			lineText.substring(prefixIndex + this.settings.prefix.length, suffixIndex);
-		let expansionText: string = ShortcutExpander.expand(sourceText, false, true);
+		let expansionText: string = await ShortcutExpander.expand(sourceText, false, true);
 		if (expansionText === undefined) { return; }
 
 		// Handle a string array from the Expansion result

@@ -4,6 +4,9 @@
 
 "use strict";
 
+// Get the AsyncFunction constructor to setup and run Expansion scripts with
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+
 abstract class ShortcutExpander
 {
 	public static initialize(plugin: TextExpanderJsPlugin): void
@@ -12,16 +15,17 @@ abstract class ShortcutExpander
 	}
 
 	// Take a shortcut string and expand it based on shortcuts active in the plugin
-	public static expand(
-		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): any
+	public static async expand(
+		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): Promise<any>
 	{
-		return this.expand_internal(shortcutString, failSilently, isUserTriggered);
+		return await this.expand_internal(shortcutString, failSilently, isUserTriggered);
 	}
 
 	// Execute an expansion script (a string of javascript defined in a shortcut's Expansion string)
-	public static runExpansionScript(expansionScript: string, isUserTriggered?: boolean): any
+	public static async runExpansionScript(
+		expansionScript: string, isUserTriggered?: boolean): Promise<any>
 	{
-		return this.runExpansionScript_internal(expansionScript, isUserTriggered);
+		return await this.runExpansionScript_internal(expansionScript, isUserTriggered);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +39,9 @@ abstract class ShortcutExpander
 	{
 		this._plugin = plugin;
 
+		// Initialize the AutoAwaitWrapper
+		AutoAwaitWrapper.initialize([ "expand" ]);
+
 		//Setup bound versons of these function for persistant use
 		this._expand_internal = this.expand_internal.bind(this);
 		this._handleExpansionError = this.handleExpansionError.bind(this);
@@ -45,8 +52,8 @@ abstract class ShortcutExpander
 
 	// Take a shortcut string and return the proper Expansion script.
 	// WARNING: user-facing function
-	private static expand_internal(
-		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): any
+	private static async expand_internal(
+		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): Promise<any>
 	{
 		if (!shortcutString) { return; }
 
@@ -91,8 +98,8 @@ abstract class ShortcutExpander
 
 		let expansionResult =
 			foundMatch ?
-			this.runExpansionScript_internal(expansionScript, failSilently, isUserTriggered) :
-			undefined;
+			(await this.runExpansionScript_internal(expansionScript, failSilently, isUserTriggered))
+			: undefined;
 
 		// If shortcut parsing amounted to nothing.  Notify user of bad shortcut entry.
 		if (expansionResult === undefined)
@@ -139,8 +146,8 @@ abstract class ShortcutExpander
 	// NOTE: Error handling is being done through window "error" event, rather than through
 	// exceptions.  This is because exceptions don't provide error line numbers whereas error
 	// events do.  Line numbers are important to create the useful "expansion failed" message.
-	private static runExpansionScript_internal
-		(expansionScript: string, failSilently?: boolean, isUserTriggered?: boolean): any
+	private static async runExpansionScript_internal
+		(expansionScript: string, failSilently?: boolean, isUserTriggered?: boolean): Promise<any>
 	{
 		// Prepare for possible Expansion script error
 		if (isUserTriggered || !this._expansionErrorHandlerStack.length)
@@ -162,15 +169,21 @@ abstract class ShortcutExpander
 				}
 			}
 			window.addEventListener("error", this._handleExpansionError);
+
+			// Disable input
+			InputBlocker.setEnabled(true);
 		}
 		this._expansionErrorHandlerStack.push({ expansionScript: expansionScript });
+
+		// Handle auto-await functions
+		expansionScript = AutoAwaitWrapper.run(expansionScript);
 
 		// Run the Expansion script
 		// Pass expand function and isUserTriggered flag for use in Expansion script
 		let result: any;
 		if (!failSilently)
 		{
-			result = ( new Function(
+			result = await ( new AsyncFunction(
 				"expand", "isUserTriggered", "runExternal", "print",
 				expansionScript) )
 				( this._expand_internal, isUserTriggered,
@@ -214,6 +227,9 @@ abstract class ShortcutExpander
 				}
 			}
 			window.removeEventListener("error", this._handleExpansionError);
+
+			// Enable input
+			InputBlocker.setEnabled(false);
 		}
 
 		return result;
@@ -255,5 +271,8 @@ abstract class ShortcutExpander
 		// Clean up script error preparations (now that the error is handled)
 		this._expansionErrorHandlerStack = []; // Error causes nesting to unwind.  Clear the stack.
 		window.removeEventListener("error", this._handleExpansionError);
+
+		// Disable input
+		InputBlocker.setEnabled(false);
 	}
 }
