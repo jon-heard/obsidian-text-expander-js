@@ -37,20 +37,13 @@ abstract class SettingUi_ShortcutFiles
 				return button
 					.setButtonText("Import full library")
 					.setClass("tejs_button")
-					.onClick(() =>
+					.onClick(async () =>
 					{
-						new ConfirmDialogBox(
-							app,
-							"Confirm importing the full shortcut-" +
-							"files library into this vault.",
-							(confirmation: boolean) =>
-							{
-								if (confirmation)
-								{
-									LibraryImporter.run();
-								}
-							}
-						).open();
+						if (await Popups.getInstance().confirm(
+						    "Confirm importing the full shortcut-files library into this vault."))
+						{
+							LibraryImporter.run();
+						}
 					});
 			});
 		this._shortcutFileUis = parent.createEl("div", { cls: "tejs_shortcutFiles" });

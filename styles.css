@@ -142,7 +142,7 @@
 	bottom: 0;
 	background-color: black;
 	opacity: 0.5;
-	z-index: 100;
+	z-index: 10;
 	transition: opacity 1s;
 }
 .tejs_fadedOut
@@ -165,4 +165,13 @@
 {
 	margin-right: 0.5em;
 	margin-bottom: -0.3em;
+}
+.tejs_soloControl
+{
+	width: 100%;
+}
+.tejs_popup
+{
+	padding: 1em;
+	padding-top: 2.5em;
 }

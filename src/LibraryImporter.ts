@@ -101,39 +101,24 @@ namespace LibraryImporter
 			}
 		}
 		if (commonPath === ADDRESS_LOCAL) { commonPath = undefined; }
-		let libraryDestination: string = await new Promise((resolve, reject) =>
+		
+		let libraryDestination: string = ADDRESS_LOCAL;
+		if (commonPath !== undefined)
 		{
-			if (commonPath === undefined)
-			{
-				resolve(ADDRESS_LOCAL);
-				return;
-			}
-
-			// We need to remove the input blocker to let the user choose
-			InputBlocker.setEnabled(false);
-
-			new ConfirmDialogBox(
-				_settingsUi.plugin.app,
+			//InputBlocker.setEnabled(false);
+			if (await Popups.getInstance().confirm(
 				"All library references are currently in the folder \"" + commonPath +
 				"\".\nWould you like to import the library into \"" + commonPath +
 				"\"?\nIf not, the library will be imported into the folder \"" + ADDRESS_LOCAL +
-				"\".",
-				(confirmation: boolean) =>
-				{
-					if (confirmation)
-					{
-						resolve(commonPath);
-					}
-					else
-					{
-						resolve(ADDRESS_LOCAL);
-					}
-				}
-			).open();
-		});
+				"\"."))
+			{
+				libraryDestination = commonPath;
+			}
+			//InputBlocker.setEnabled(true);
+		}
 
 		// Put the input blocker back (if it was disabled for the confirm dialog)
-		InputBlocker.setEnabled(true);
+//		InputBlocker.setEnabled(true);
 
 		// Adjust the disabledShortcutFiles to match the libraryDestination
 		disabledShortcutFiles =

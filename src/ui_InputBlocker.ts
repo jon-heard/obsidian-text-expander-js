@@ -14,6 +14,7 @@ namespace InputBlocker
 	// Adds/removes a tinted full-screen div to prevent user-input
 	export function setEnabled(value: boolean): void
 	{
+return;
 		if (value)
 		{
 			// If Input blocker UI already exists, do nothing

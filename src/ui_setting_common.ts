@@ -4,16 +4,12 @@
 
 namespace SettingUi_Common
 {
-	export function deleteButtonClicked(): void
+	export async function deleteButtonClicked(): Promise<void>
 	{
-		new ConfirmDialogBox( this.app, "Confirm removing a " + this.typeTitle + ".",
-			(confirmation: boolean) =>
-			{
-				if (confirmation)
-				{
-					this.group.remove();
-				}
-			} ).open();
+		if (await Popups.getInstance().confirm("Confirm removing a " + this.typeTitle + "."))
+		{
+			this.group.remove();
+		}
 	}
 
 	export function upButtonClicked(): void

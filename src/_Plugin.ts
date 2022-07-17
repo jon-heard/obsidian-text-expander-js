@@ -75,6 +75,7 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 		UserNotifier.initialize(this);
 		ExternalRunner.initialize(this);
 		InputBlocker.initialize(this);
+		Popups.initialize(this);
 		this.shortcutDfc = new Dfc(
 			this, this.getActiveShortcutFileAddresses(),
 			ShortcutLoader.getFunction_setupShortcuts(), this.onShortcutFileDisabled.bind(this),
@@ -210,7 +211,7 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 		// Run the Expansion script on the shortcut under the caret
 		const sourceText: string =
 			lineText.substring(prefixIndex + this.settings.prefix.length, suffixIndex);
-		let expansionText: string = await ShortcutExpander.expand(sourceText, false, true);
+		let expansionText: string = ShortcutExpander.expand(sourceText, false, true);
 		if (expansionText === undefined) { return; }
 
 		// Handle a string array from the Expansion result

@@ -15,17 +15,17 @@ abstract class ShortcutExpander
 	}
 
 	// Take a shortcut string and expand it based on shortcuts active in the plugin
-	public static async expand(
-		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): Promise<any>
+	public static expand(
+		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): any
 	{
-		return await this.expand_internal(shortcutString, failSilently, isUserTriggered);
+		return this.expand_internal(shortcutString, failSilently, isUserTriggered);
 	}
 
 	// Execute an expansion script (a string of javascript defined in a shortcut's Expansion string)
-	public static async runExpansionScript(
-		expansionScript: string, isUserTriggered?: boolean): Promise<any>
+	public static runExpansionScript(
+		expansionScript: string, isUserTriggered?: boolean): any
 	{
-		return await this.runExpansionScript_internal(expansionScript, isUserTriggered);
+		return this.runExpansionScript_internal(expansionScript, isUserTriggered);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ abstract class ShortcutExpander
 		this._plugin = plugin;
 
 		// Initialize the AutoAwaitWrapper
-		AutoAwaitWrapper.initialize([ "expand" ]);
+		AutoAwaitWrapper.initialize([ "expand", "(?:Popups\\.[a-z]+)" ]);
 
 		//Setup bound versons of these function for persistant use
 		this._expand_internal = this.expand_internal.bind(this);
@@ -52,8 +52,8 @@ abstract class ShortcutExpander
 
 	// Take a shortcut string and return the proper Expansion script.
 	// WARNING: user-facing function
-	private static async expand_internal(
-		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): Promise<any>
+	private static expand_internal(
+		shortcutString: string, failSilently?: boolean, isUserTriggered?: boolean): any
 	{
 		if (!shortcutString) { return; }
 
@@ -98,7 +98,7 @@ abstract class ShortcutExpander
 
 		let expansionResult =
 			foundMatch ?
-			(await this.runExpansionScript_internal(expansionScript, failSilently, isUserTriggered))
+			(this.runExpansionScript_internal(expansionScript, failSilently, isUserTriggered))
 			: undefined;
 
 		// If shortcut parsing amounted to nothing.  Notify user of bad shortcut entry.
@@ -146,8 +146,8 @@ abstract class ShortcutExpander
 	// NOTE: Error handling is being done through window "error" event, rather than through
 	// exceptions.  This is because exceptions don't provide error line numbers whereas error
 	// events do.  Line numbers are important to create the useful "expansion failed" message.
-	private static async runExpansionScript_internal
-		(expansionScript: string, failSilently?: boolean, isUserTriggered?: boolean): Promise<any>
+	private static runExpansionScript_internal
+		(expansionScript: string, failSilently?: boolean, isUserTriggered?: boolean): any
 	{
 		// Prepare for possible Expansion script error
 		if (isUserTriggered || !this._expansionErrorHandlerStack.length)
@@ -176,18 +176,41 @@ abstract class ShortcutExpander
 		this._expansionErrorHandlerStack.push({ expansionScript: expansionScript });
 
 		// Handle auto-await functions
-		expansionScript = AutoAwaitWrapper.run(expansionScript);
+//		expansionScript = AutoAwaitWrapper.run(expansionScript);
 
 		// Run the Expansion script
 		// Pass expand function and isUserTriggered flag for use in Expansion script
 		let result: any;
-		if (!failSilently)
+
+		try
 		{
-			result = await ( new AsyncFunction(
-				"expand", "isUserTriggered", "runExternal", "print",
+//			result = await (new AsyncFunction(
+			result = (new Function(
+				"expand", "isUserTriggered", "runExternal", "print", "Popups",
 				expansionScript) )
 				( this._expand_internal, isUserTriggered,
-				  ExternalRunner.getFunction_runExternal(), UserNotifier.getFunction_print() );
+				  ExternalRunner.getFunction_runExternal(), UserNotifier.getFunction_print(),
+				  Popups.getInstance() );
+			// if shortcut doesn't return anything, best to return ""
+			result ??= "";
+		}
+		catch (e)
+		{
+debugger;
+//			if (!failSilently)
+//			{
+//				throw(e);
+//			}
+		}
+/*
+		if (!failSilently)
+		{
+			result = await (new AsyncFunction(
+				"expand", "isUserTriggered", "runExternal", "print", "Popups",
+				expansionScript) )
+				( this._expand_internal, isUserTriggered,
+				  ExternalRunner.getFunction_runExternal(), UserNotifier.getFunction_print(),
+				  Popups.getInstance() );
 			// if shortcut doesn't return anything, best to return ""
 			result ??= "";
 		}
@@ -195,16 +218,18 @@ abstract class ShortcutExpander
 		{
 			try
 			{
-				result = ( new Function(
-					"expand", "isUserTriggered", "runExternal", "print",
+				result = await (new AsyncFunction(
+					"expand", "isUserTriggered", "runExternal", "print", "Popups",
 					expansionScript) )
 					( this._expand_internal, isUserTriggered,
-					  ExternalRunner.getFunction_runExternal(), UserNotifier.getFunction_print() );
+					  ExternalRunner.getFunction_runExternal(), UserNotifier.getFunction_print(),
+					  Popups.getInstance() );
 				// if shortcut doesn't return anything, best to return ""
 				result ??= "";
 			}
 			catch (e) {}
 		}
+*/
 
 		// Clean up script error preparations
 		this._expansionErrorHandlerStack.pop();
