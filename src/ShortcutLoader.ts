@@ -4,6 +4,10 @@
 
 "use strict";
 
+import TextExpanderJsPlugin from "./_Plugin";
+import { UserNotifier } from "./ui_UserNotifier";
+import { ShortcutExpander } from "./ShortcutExpander";
+
 const REGEX_NOTE_METADATA: RegExp = /^\n*---\n(?:[^-]+\n)?---\n/;
 const REGEX_SPLIT_FIRST_DASH: RegExp = / - (.*)/s;
 const GENERAL_HELP_PREAMBLE = `return [ "#### Help - General
@@ -21,7 +25,7 @@ const SFILE_REF_PREAMBLE = `let result = "#### Reference - $1
 _Use shortcut __help $2__ for general help._
 ";`;
 
-abstract class ShortcutLoader
+export abstract class ShortcutLoader
 {
 	public static initialize(plugin: TextExpanderJsPlugin)
 	{
@@ -110,7 +114,7 @@ abstract class ShortcutLoader
 				{
 					UserNotifier.run(
 					{
-						consoleMessage: "In shortcut-file \"" + filename + "\":\n" + INDENT + c,
+						consoleMessage: "In shortcut-file \"" + filename + "\":\n" + c,
 						messageType: "BAD-TEST-STRING-ERROR"
 					});
 					fileHasErrors = true;
@@ -195,7 +199,7 @@ abstract class ShortcutLoader
 		for (const shortcutFile of this._plugin.settings.shortcutFiles)
 		{
 			if (!shortcutFile.enabled) { continue; }
-			const file: any = this._plugin.app.vault.fileMap[shortcutFile.address];
+			const file: any = (this._plugin.app.vault as any).fileMap[shortcutFile.address];
 			if (!file)
 			{
 				UserNotifier.run(

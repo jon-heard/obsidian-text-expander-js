@@ -2,6 +2,11 @@
 // UserNotifier - wrapper around sending messages to user via console and popup notifications //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+"use strict";
+
+import { Notice } from 'obsidian';
+import TextExpanderJsPlugin from "./_Plugin";
+
 // parameters for "run" (all optional):
 // - popupMessage: string
 //     - Text displayed in popup notification.  Falls back to "message", then to no popup displayed.
@@ -22,7 +27,7 @@
 const LONG_NOTE_TIME: number = 8 * 1000;
 const INDENT: string = " ".repeat(4);
 
-namespace UserNotifier
+export namespace UserNotifier
 {
 	export function initialize(plugin: TextExpanderJsPlugin): void
 	{
@@ -50,7 +55,7 @@ namespace UserNotifier
 	function print(message: any): any
 	{
 		// Send the message to user as a popup notification and a console log.
-		new obsidian.Notice("TEJS Shortcut:\n" + message, LONG_NOTE_TIME);
+		new Notice("TEJS Shortcut:\n" + message, LONG_NOTE_TIME);
 		console.info("TEJS Shortcut:\n\t" + message);
 		return message;
 	};
@@ -81,7 +86,7 @@ namespace UserNotifier
 		// Add the popup notification
 		if (popupMessage)
 		{
-			new obsidian.Notice(
+			new Notice(
 				(messageLevel === 2 ? "ERROR: " : "") +
 				popupMessage +
 				(consoleHasDetails ? "\n\n(see console for details)" : ""),

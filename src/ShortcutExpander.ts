@@ -4,7 +4,12 @@
 
 "use strict";
 
-abstract class ShortcutExpander
+import TextExpanderJsPlugin from "./_Plugin";
+import { Parser } from "./node_modules/acorn/dist/acorn";
+import { UserNotifier } from "./ui_UserNotifier";
+import { ExternalRunner } from "./ExternalRunner";
+
+export abstract class ShortcutExpander
 {
 	public static initialize(plugin: TextExpanderJsPlugin): void
 	{
@@ -33,6 +38,7 @@ abstract class ShortcutExpander
 
 	private static initialize_internal(plugin: TextExpanderJsPlugin)
 	{
+//console.log(acorn);
 		this._plugin = plugin;
 
 		//Setup bound versons of these function for persistant use
@@ -170,6 +176,8 @@ abstract class ShortcutExpander
 		let result: any;
 		if (!failSilently)
 		{
+const MyParser = Parser();
+console.log(MyParser.parse(expansionScript));
 			result = ( new Function(
 				"expand", "isUserTriggered", "runExternal", "print",
 				expansionScript) )
@@ -190,7 +198,7 @@ abstract class ShortcutExpander
 				// if shortcut doesn't return anything, best to return ""
 				result ??= "";
 			}
-			catch (e) {}
+			catch (e: any) {}
 		}
 
 		// Clean up script error preparations

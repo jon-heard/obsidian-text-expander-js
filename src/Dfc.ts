@@ -4,9 +4,11 @@
 
 "use strict";
 
-enum DfcMonitorType { None, OnModify, OnTouch };
+import TextExpanderJsPlugin from "./_Plugin";
 
-class Dfc
+export enum DfcMonitorType { None, OnModify, OnTouch };
+
+export class Dfc
 {
 	public constructor(
 		plugin: TextExpanderJsPlugin, filenames: Array<string>, refreshFnc: Function,
@@ -269,7 +271,7 @@ class Dfc
 			// still need check modified dates to keep our records up to date.
 			for (const filename in this._fileData)
 			{
-				const file: any = this._plugin.app.vault.fileMap[filename];
+				const file: any = (this._plugin.app.vault as any).fileMap[filename];
 
 				// If file exists...
 				if (file)

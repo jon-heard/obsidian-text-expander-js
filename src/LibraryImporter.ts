@@ -4,6 +4,12 @@
 
 "use strict";
 
+import { UserNotifier } from "./ui_UserNotifier";
+import { InputBlocker } from "./ui_InputBlocker";
+import { ConfirmDialogBox } from "./ui_ConfirmDialogBox";
+import { SettingUi_ShortcutFiles } from "./ui_setting_shortcutFiles";
+import { TextExpanderJsPluginSettings } from "./ui_settings";
+
 const REGEX_LIBRARY_README_SHORTCUT_FILE: RegExp =
 	/### (tejs_[_a-zA-Z0-9]+)\n(_\(disabled by default)?/g;
 const ADDRESS_REMOTE: string =
@@ -12,7 +18,7 @@ const ADDRESS_REMOTE: string =
 const ADDRESS_LOCAL: string = "tejs";
 const FILE_README: string = "README.md";
 
-namespace LibraryImporter
+export namespace LibraryImporter
 {
 	export function initialize(settingsUi: TextExpanderJsPluginSettings)
 	{
@@ -44,7 +50,7 @@ namespace LibraryImporter
 				method: "GET", cache: "no-cache"
 			});
 		}
-		catch(e)
+		catch(e: any)
 		{
 			UserNotifier.run({
 				popupMessage: "Library importing failed.\nUnable to connect.",
@@ -140,7 +146,7 @@ namespace LibraryImporter
 			disabledShortcutFiles.map(v => libraryDestination + "/" + v + ".md");
 
 		// Create the choosen library destination folder, if necessary
-		if (!_settingsUi.plugin.app.vault.fileMap.hasOwnProperty(libraryDestination))
+		if (!(_settingsUi.plugin.app.vault as any).fileMap.hasOwnProperty(libraryDestination))
 		{
 			_settingsUi.plugin.app.vault.createFolder(libraryDestination);
 		}
@@ -155,7 +161,7 @@ namespace LibraryImporter
 			});
 
 			let filename: string = libraryDestination + "/" + libShortcutFile + ".md";
-			let file: any = _settingsUi.plugin.app.vault.fileMap[filename];
+			let file: any = (_settingsUi.plugin.app.vault as any).fileMap[filename];
 			if (file)
 			{
 				await _settingsUi.plugin.app.vault.modify(file, content);

@@ -4,13 +4,13 @@
 
 "use strict";
 
-const DEFAULT_SUB_SETTINGS_MOBILE: object = Object.freeze(
+export const DEFAULT_SUB_SETTINGS_MOBILE: object = Object.freeze(
 {
 	prefix: "!!",
 	suffix: "!"
 });
 
-const DEFAULT_SETTINGS: any = Object.freeze(
+export const DEFAULT_SETTINGS: any = Object.freeze(
 {
 	prefix: ";;",
 	suffix: ";",

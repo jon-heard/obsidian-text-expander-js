@@ -4,8 +4,20 @@
 
 "use strict";
 
-class TextExpanderJsPluginSettings extends obsidian.PluginSettingTab
+import { PluginSettingTab } from 'obsidian';
+import TextExpanderJsPlugin from "./_Plugin";
+import { SettingUi_ShortcutFiles } from "./ui_setting_shortcutFiles";
+import { SettingUi_Shortcuts } from "./ui_setting_shortcuts";
+import { SettingUi_ShortcutFormat } from "./ui_setting_format";
+import { SettingUi_Other } from "./ui_setting_other";
+import { ShortcutLoader } from "./ShortcutLoader";
+import { DfcMonitorType } from "./Dfc";
+import { LibraryImporter } from "./LibraryImporter";
+
+export class TextExpanderJsPluginSettings extends PluginSettingTab
 {
+	public plugin: TextExpanderJsPlugin;
+
 	public constructor(app: any, plugin: TextExpanderJsPlugin)
 	{
 		super(app, plugin);

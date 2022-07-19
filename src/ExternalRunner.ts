@@ -4,9 +4,13 @@
 
 "use strict";
 
-let childProcess: any;
+import { Platform } from 'obsidian';
+import TextExpanderJsPlugin from "./_Plugin";
+import { UserNotifier } from "./ui_UserNotifier";
 
-abstract class ExternalRunner
+let childProcess: any = null;
+
+export abstract class ExternalRunner
 {
 	public static initialize(plugin: TextExpanderJsPlugin): void
 	{
@@ -37,21 +41,42 @@ abstract class ExternalRunner
 		// - If we are NOT on a mobile platform, then we can safely use the node.js library.
 		// - If we ARE on a mobile platform, we can NOT use the node.js library.  This is checked
 		//   during "runExternal()", so childProcess is never referenced.
-		if (!obsidian.Platform.isMobile)
+		if (!Platform.isMobile)
 		{
-			childProcess = require("child_process");
+			try
+			{
+				childProcess = require("child_process");
+			}
+			catch(e: any)
+			{
+				console.error("External runner failed to load \"child_process\": " + e);
+			}
 		}
 	}
 
 	private static runExternal(command: string, failSilently?: boolean, dontFixSlashes?: boolean)
 	{
 		// Error-out if on mobile platform
-		if (obsidian.Platform.isMobile)
+		if (Platform.isMobile)
 		{
 			UserNotifier.run(
 			{
 				popupMessage: "Unauthorized \"runExternal\" call",
 				consoleMessage: "Unauthorized \"runExternal\" call (not available on mobile):\n" +
+				"runExternal(\"" + command + "\")",
+				messageType: "RUNEXTERNAL-ERROR",
+				consoleHasDetails: true
+			});
+			return undefined;
+		}
+
+		// Error-out if childProcess hasn't been loaded
+		if (childProcess === null)
+		{
+			UserNotifier.run(
+			{
+				popupMessage: "Failed \"runExternal\" call",
+				consoleMessage: "Failed \"runExternal\" call (childProcess not loaded):\n" +
 				"runExternal(\"" + command + "\")",
 				messageType: "RUNEXTERNAL-ERROR",
 				consoleHasDetails: true
@@ -85,7 +110,7 @@ abstract class ExternalRunner
 		}
 
 		// Run the shell command
-		let vaultDir: string = this._plugin.app.fileManager.vault.adapter.basePath;
+		let vaultDir: string = (this._plugin.app.vault.adapter as any).basePath;
 		try
 		{
 			let result: string = childProcess.execSync(command, { cwd: vaultDir});

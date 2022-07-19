@@ -4,7 +4,9 @@
 
 "use strict";
 
-class ConfirmDialogBox extends obsidian.Modal
+import { Modal, Setting } from 'obsidian';
+
+export class ConfirmDialogBox extends Modal
 {
 	public constructor(app: any, message: string, callback: Function)
 	{
@@ -21,7 +23,7 @@ class ConfirmDialogBox extends obsidian.Modal
 			this.titleEl.createEl("div", { text: line });
 		}
 
-		new obsidian.Setting(this.contentEl)
+		new Setting(this.contentEl)
 			.addButton((button: any) =>
 			{
 				button

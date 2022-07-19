@@ -4,6 +4,15 @@
 
 "use strict";
 
+import { Plugin, Platform, MarkdownView } from 'obsidian';
+import { UserNotifier } from "./ui_UserNotifier";
+import { TextExpanderJsPluginSettings } from "./ui_settings";
+import { DEFAULT_SETTINGS, DEFAULT_SUB_SETTINGS_MOBILE } from "./defaultSettings";
+import { Dfc, DfcMonitorType } from "./Dfc";
+import { ShortcutExpander } from "./ShortcutExpander";
+import { ShortcutLoader } from "./ShortcutLoader";
+import { ExternalRunner } from "./ExternalRunner";
+
 // NOTE: The "Text Expander JS" plugin uses a custom format for shortcut-files.  I tried using
 // existing formats (json, xml, etc), but they were cumbersome for developing javascript code in.
 // The chosen format is simple, flexible, and allows for wrapping scripts in js-fenced-code-blocks.
@@ -13,18 +22,18 @@
 // and here:
 // https://github.com/jon-heard/obsidian-text-expander-js#development-aid-fenced-code-blocks
 
-class TextExpanderJsPlugin extends obsidian.Plugin
+export default class TextExpanderJsPlugin extends Plugin
 {
 	// Store the plugin's settings
 	public settings: any;
 	// Keep track of the suffix's final character
-	public suffixEndCharacter: string;
+	public suffixEndCharacter: string = ";";
 	// Keep track of shutdown scripts for any shortcut-files that have them
 	public shutdownScripts: any;
 	// Keep a Dfc for shortcut-files.  This lets us monitor changes to them.
-	public shortcutDfc: Dfc;
+	public shortcutDfc: Dfc = null;
 	// The master list of shortcuts: all registered shortcuts.  Referenced during expansion.
-	public shortcuts: Array<any>;
+	public shortcuts: Array<any> = [];
 
 	public onload(): void
 	{
@@ -56,7 +65,7 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 	{
 		// Load settings
 		const currentDefaultSettings: object =
-			obsidian.Platform.isMobile ?
+			Platform.isMobile ?
 			Object.assign({}, DEFAULT_SETTINGS, DEFAULT_SUB_SETTINGS_MOBILE) :
 			DEFAULT_SETTINGS;
 		this.settings = Object.assign({}, currentDefaultSettings, await this.loadData());
@@ -175,7 +184,7 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 	// important for CM5, as the typed key isn't in the editor until the calling event finishes.
 	private tryShortcutExpansion(): void { setTimeout(() =>
 	{
-		const editor: any  = this.app.workspace.getActiveViewOfType(obsidian.MarkdownView)?.editor;
+		const editor: any  = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
 		if (!editor) { return; }
 
 		// Find bounds of the shortcut beneath the caret (if there is one)
@@ -214,5 +223,3 @@ class TextExpanderJsPlugin extends obsidian.Plugin
 			{ line: cursor.line, ch: suffixIndex + this.settings.suffix.length } );
 	}, 0); }
 }
-
-module.exports = TextExpanderJsPlugin;

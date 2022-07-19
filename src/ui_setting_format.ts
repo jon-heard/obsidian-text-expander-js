@@ -2,7 +2,11 @@
 // Setting ui shortcut format - Create and work with a setting for the format of shortcut input. //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-abstract class SettingUi_ShortcutFormat
+"use strict";
+
+import { Setting, Platform } from 'obsidian';
+
+export abstract class SettingUi_ShortcutFormat
 {
 	// Create the setting ui
 	public static create(parent: any, settings: any): void
@@ -43,7 +47,7 @@ abstract class SettingUi_ShortcutFormat
 		this._formatErrMsgContentUi = this._formatErrMsgContainerUi.createEl("span");
 
 		// Prefix
-		new obsidian.Setting(parent)
+		new Setting(parent)
 			.setName("Prefix")
 			.setDesc("What to type BEFORE a shortcut.")
 			.addText((text: any) =>
@@ -58,10 +62,10 @@ abstract class SettingUi_ShortcutFormat
 						this.isFormatValid();
 					});
 			})
-			.settingEl.toggleClass("tejs_settingBundledTop", !obsidian.Platform.isMobile);
+			.settingEl.toggleClass("tejs_settingBundledTop", !Platform.isMobile);
 
 		// Suffix
-		new obsidian.Setting(parent)
+		new Setting(parent)
 			.setName("Suffix")
 			.setDesc("What to type AFTER a shortcut.")
 			.addText((text: any) =>
@@ -76,11 +80,11 @@ abstract class SettingUi_ShortcutFormat
 						this.isFormatValid();
 					});
 			})
-			.settingEl.toggleClass("tejs_settingBundled", !obsidian.Platform.isMobile);
+			.settingEl.toggleClass("tejs_settingBundled", !Platform.isMobile);
 
 		// Example
 		const exampleOuter: any = parent.createEl("div", { cls: "setting-item" });
-		exampleOuter.toggleClass("tejs_settingBundled", !obsidian.Platform.isMobile);
+		exampleOuter.toggleClass("tejs_settingBundled", !Platform.isMobile);
 		const exampleInfo: any = exampleOuter.createEl("div", { cls: "setting-item-info" });
 		exampleInfo.createEl("div", { text: "Example", cls: "setting-item-name" });
 		exampleInfo.createEl("div",
